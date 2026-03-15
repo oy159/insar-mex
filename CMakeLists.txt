@@ -16,7 +16,7 @@ set(SOURCES
 
 file(GLOB_RECURSE HEADERS "src/*.h")
 
-add_library(unwrapped_phase  STATIC ${SOURCES} ${HEADERS})
+add_library(unwrapped_phase STATIC ${SOURCES} ${HEADERS})
 
 add_executable(Radar_main main.cpp)
 target_link_libraries(Radar_main unwrapped_phase)

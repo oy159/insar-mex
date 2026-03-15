@@ -49,7 +49,7 @@ std::unique_ptr<MatrixD> qualityMapGuideMethod::Method::unwrap(const MatrixD &qu
             int adjX = unwrap.x + dir.first;
             int adjY = unwrap.y + dir.second;
             if (adjX >= 0 && adjX < flag.rows() && adjY >= 0 && adjY < flag.cols() && flag(adjX, adjY)) {
-                unwrappedPhase(unwrap.x, unwrap.y) = itohUnwrapNeighbor(phaseMap(adjX, adjY), phaseMap(unwrap.x, unwrap.y));
+                unwrappedPhase(unwrap.x, unwrap.y) = itohUnwrapNeighbor(unwrappedPhase(adjX, adjY), phaseMap(unwrap.x, unwrap.y));
                 flag(unwrap.x, unwrap.y) = 1;
                 cnt++;
                 if (progressCb && cnt % mod == 0) {

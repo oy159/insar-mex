@@ -18,18 +18,18 @@ namespace utils {
 
     template<typename T>
         class Matrix {
-                std::vector<T> data_;
-                size_t rows_, cols_;
+            std::vector<T> data_;
+            size_t rows_, cols_;
             public:
-            Matrix(size_t rows = 0, size_t cols = 0, size_t val = 0) : rows_(rows), cols_(cols), data_(rows * cols, val) {}
-            size_t rows() const { return rows_; }
-            size_t cols() const { return cols_; }
+                Matrix(size_t rows = 0, size_t cols = 0, T val = T()) : rows_(rows), cols_(cols), data_(rows * cols, val) {}
+                size_t rows() const { return rows_; }
+                size_t cols() const { return cols_; }
 
-            T& operator()(size_t i, size_t j) { return data_[i * cols_ + j]; }
-            const T& operator()(size_t i, size_t j) const { return data_[i * cols_ + j]; }
-            std::vector<T>& data() { return data_; }
-            const std::vector<T>& data() const { return data_; }
-        // 提供 reshape 或 resize 方法等
+                T& operator()(size_t i, size_t j) { return data_[i * cols_ + j]; }
+                const T& operator()(size_t i, size_t j) const { return data_[i * cols_ + j]; }
+                std::vector<T>& data() { return data_; }
+                const std::vector<T>& data() const { return data_; }
+            // 提供 reshape 或 resize 方法等
     };
 
     using MatrixD = Matrix<double>;

@@ -7,6 +7,10 @@ set(Matlab_ROOT_DIR "C:/Program Files/MATLAB/R2024b")
 set(MATLAB_FIND_DEBUG ON)
 find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MAIN_PROGRAM)
 
+
+add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
+add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
+
 set(SOURCES
         src/phaseUnwrap/qualityMapGuideMethod.cpp
         src/utils/utils.cpp
@@ -34,5 +38,12 @@ matlab_add_mex(
         LINK_TO     unwrapped_phase
 )
 
-add_custom_target(all_mex DEPENDS qualityMapGuideMethod_mex circularMedianFilter_mex)
+matlab_add_mex(
+        NAME        branchCut_mex
+        SRC         mex/branchCut_mex.cpp
+        LINK_TO     unwrapped_phase
+)
+
+
+add_custom_target(all_mex DEPENDS qualityMapGuideMethod_mex circularMedianFilter_mex branchCut_mex)
 

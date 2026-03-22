@@ -1,14 +1,37 @@
 #ifndef RADAR_ALGORITHM_UTILS_H
 #define RADAR_ALGORITHM_UTILS_H
 
+#include <cstdarg>
 #include <vector>
 #include <cstdint>
 #include <memory>
+
+
+#include <cstdio>
+#include <cstdarg>
 
 namespace utils {
     inline constexpr double PI = 3.14159265358979323846;
     inline constexpr double DEG2RAD = PI / 180.0;
     inline constexpr double RAD2DEG = 180.0 / PI;
+
+    // 定义日志回调函数的类型指针
+    using LoggerCallback = void(*)(const char* msg);
+
+    /**
+     * @brief 设置自定义的日志打印函数
+     * MEX 环境下调用: utils::SetLogger([](const char* m){ mexPrintf("%s\n", m); });
+     */
+    void SetLogger(LoggerCallback cb);
+
+    /**
+     * @brief 通用日志输出函数
+     * 内部会调用通过 SetLogger 注册的回调
+     */
+    void Log(const char* fmt, ...);
+
+
+
 
     template <typename T>
     inline constexpr T deg2rad(T d) { return d * static_cast<T>(DEG2RAD); }

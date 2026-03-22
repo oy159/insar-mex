@@ -51,6 +51,7 @@ namespace branchCut {
          * @return 返回枝切线矩阵的副本
          */
         std::unique_ptr<utils::MatrixB> getBranchCuts();
+
         int getNumResidues();
     };
 

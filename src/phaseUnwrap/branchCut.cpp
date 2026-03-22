@@ -101,7 +101,7 @@ namespace {
                     }
                 }
             } else {
-                // 启发式搜索：优先搜索距离目标点更近的子节点
+                // 优先搜索距离目标点更近的子节点
                 struct ChildDist {
                     int index;
                     double d;
@@ -130,8 +130,6 @@ namespace {
             insertRecursive(root.get(), Point{r, c, idx});
         }
 
-        // 寻找最近邻
-        // 返回 activeResidues 中的索引，如果没有找到返回 -1
         int findNearest(int r, int c, double& outDist, const std::function<bool(int)>& isValid) {
             int bestIdx = -1;
             double minDstSq = std::numeric_limits<double>::max();
@@ -271,13 +269,104 @@ void branchCut::Method::placeBranchCuts() {
 }
 
 void branchCut::Method::unwrapAroundCuts(const utils::MatrixD &phaseMap, utils::MatrixD &result) {
+    int rows = phaseMap.rows();
+    int cols = phaseMap.cols();
+
+    // 初始化解缠结果矩阵和标志位矩阵
+    // result = phaseMap; // 不需要全拷贝，只需要在访问时赋值
+    utils::MatrixB unwrappedFlags(rows, cols, 0); // 0: 未解缠, 1: 已解缠
+
+    // Lambda: Itoh 1D 解缠辅助函数
+    auto itohUnwrapNeighbor = [](double currentVal, double neighborWrapped) {
+        double diff = neighborWrapped - currentVal;
+        return currentVal + atan2(sin(diff), cos(diff)); // wrap diff to [-pi, pi]
+    };
+
+    // BFS 队列
+    std::vector<std::pair<int, int>> queue;
+    queue.reserve(rows * cols); // 预分配内存以优化性能
+
+    // 1. 处理由枝切线分割的主要连通区域 (相当于 bwconncomp + 区域内解缠)
+    for (int r = 0; r < rows; ++r) {
+        for (int c = 0; c < cols; ++c) {
+            // 如果该点不是枝切线点，且尚未解缠，则为一个新区域的起点
+            if (_branchCuts(r, c) == 0 && unwrappedFlags(r, c) == 0) {
+                // 初始化区域起点
+                queue.clear();
+                queue.push_back({r, c});
+                unwrappedFlags(r, c) = 1;
+                result(r, c) = phaseMap(r, c);
+
+                size_t head = 0;
+                while (head < queue.size()) {
+                    auto [currR, currC] = queue[head++];
+                    double currPhase = result(currR, currC);
+
+                    // 检查 4 邻域 (上、下、左、右)
+                    const int dr[] = {-1, 1, 0, 0};
+                    const int dc[] = {0, 0, -1, 1};
+
+                    for (int k = 0; k < 4; ++k) {
+                        int nr = currR + dr[k];
+                        int nc = currC + dc[k];
+
+                        // 边界检查
+                        if (nr >= 0 && nr < rows && nc >= 0 && nc < cols) {
+                            // 如果邻域点不是枝切线且未解缠
+                            if (_branchCuts(nr, nc) == 0 && unwrappedFlags(nr, nc) == 0) {
+                                result(nr, nc) = itohUnwrapNeighbor(currPhase, phaseMap(nr, nc));
+                                unwrappedFlags(nr, nc) = 1;
+                                queue.push_back({nr, nc});
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // 2. 解缠枝切线上的像素 (Post-processing)
+    // 枝切线像素可以通过其邻居（非枝切线且已解缠）来解缠
+    // 根据 UnwrapAroundCuts.m，通常做两遍扫描以覆盖可能的复杂情况
+    for (int iter = 0; iter < 2; ++iter) {
+        for (int r = 0; r < rows; ++r) {
+            for (int c = 0; c < cols; ++c) {
+                if (unwrappedFlags(r, c) == 0) {
+                    // 按优先级尝试寻找即邻接的已解缠点: 左, 上, 右, 下
+                    // 一旦找到一个有效邻居，就进行解缠并标记
+
+                    if (c > 0 && unwrappedFlags(r, c - 1)) { // 左
+                        result(r, c) = itohUnwrapNeighbor(result(r, c - 1), phaseMap(r, c));
+                        unwrappedFlags(r, c) = 1;
+                    }
+                    else if (r > 0 && unwrappedFlags(r - 1, c)) { // 上
+                        result(r, c) = itohUnwrapNeighbor(result(r - 1, c), phaseMap(r, c));
+                        unwrappedFlags(r, c) = 1;
+                    }
+                    else if (c < cols - 1 && unwrappedFlags(r, c + 1)) { // 右
+                        result(r, c) = itohUnwrapNeighbor(result(r, c + 1), phaseMap(r, c));
+                        unwrappedFlags(r, c) = 1;
+                    }
+                    else if (r < rows - 1 && unwrappedFlags(r + 1, c)) { // 下
+                        result(r, c) = itohUnwrapNeighbor(result(r + 1, c), phaseMap(r, c));
+                        unwrappedFlags(r, c) = 1;
+                    }
+                }
+            }
+        }
+    }
 }
 
 std::unique_ptr<utils::MatrixD> branchCut::Method::unwrap(const utils::MatrixD &wrappedPhase) {
     locateResidues(wrappedPhase);
+    utils::Log("Located %d residues.", _num_residues);
     placeBranchCuts();
+    utils::Log("Place branch cuts finished.");
 
-    return std::make_unique<utils::MatrixD>(wrappedPhase); // TODO: 实现真正的解缠逻辑
+    auto result = std::make_unique<utils::MatrixD>(wrappedPhase.rows(), wrappedPhase.cols());
+    unwrapAroundCuts(wrappedPhase, *result);
+
+    return result;
 }
 
 std::unique_ptr<utils::Matrix<int>> branchCut::Method::getResidues() {

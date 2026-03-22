@@ -25,8 +25,9 @@ namespace utils {
                 size_t rows() const { return rows_; }
                 size_t cols() const { return cols_; }
 
-                T& operator()(size_t i, size_t j) { return data_[i * cols_ + j]; }
-                const T& operator()(size_t i, size_t j) const { return data_[i * cols_ + j]; }
+                T& operator()(size_t i, size_t j) { return data_[j * rows_ + i]; }
+                const T& operator()(size_t i, size_t j) const { return data_[j * rows_ + i]; }
+
                 std::vector<T>& data() { return data_; }
                 const std::vector<T>& data() const { return data_; }
             // 提供 reshape 或 resize 方法等

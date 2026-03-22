@@ -23,7 +23,7 @@ namespace qualityMapGuideMethod {
         MatrixB flag; MatrixB mask;
         size_t totalPoints = 0;
         double itohUnwrapNeighbor(double unwrapped, double wrapped);
-        static double wrap(double phase);
+        static double wrap2pi(double phase);
         void addAdjoinPoints(const PointVal& point, const MatrixD& qualityMap);
         void setMask(const MatrixD& qualityMap, double qualityThreshold);
         PointVal getBestPoint(const MatrixD& qualityMap);

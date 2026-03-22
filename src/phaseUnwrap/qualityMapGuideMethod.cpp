@@ -3,10 +3,10 @@
 #include <iostream>
 
 double qualityMapGuideMethod::Method::itohUnwrapNeighbor(double unwrapped, double wrapped) {
-    return unwrapped + wrap(wrapped - unwrapped);
+    return unwrapped + wrap2pi(wrapped - unwrapped);
 }
 
-double qualityMapGuideMethod::Method::wrap(double phase) {
+double qualityMapGuideMethod::Method::wrap2pi(double phase) {
     return atan2(sin(phase), cos(phase));
 }
 

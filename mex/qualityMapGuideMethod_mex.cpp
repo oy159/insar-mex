@@ -3,47 +3,37 @@
 #include <vector>
 
 using namespace qualityMapGuideMethod;
-
-// 将 MATLAB 矩阵（列优先）转换为行优先的 MatrixD
 MatrixD mxArrayToMatrixD(const mxArray* arr) {
     size_t rows = mxGetM(arr);
     size_t cols = mxGetN(arr);
     double* pr = mxGetPr(arr);
     MatrixD mat(rows, cols);
-    for (size_t j = 0; j < cols; ++j) {
-        for (size_t i = 0; i < rows; ++i) {
-            mat(i, j) = pr[j * rows + i];
-        }
-    }
+    // 直接拷贝内存（布局一致）
+    std::memcpy(mat.data().data(), pr, rows * cols * sizeof(double));
     return mat;
 }
 
-// 将行优先的 MatrixD 转换为 MATLAB 矩阵（列优先）
+// 将列优先的 MatrixD 转换为 MATLAB 矩阵（列优先）
 mxArray* matrixDToMxArray(const MatrixD& mat) {
     size_t rows = mat.rows();
     size_t cols = mat.cols();
     mxArray* arr = mxCreateDoubleMatrix(rows, cols, mxREAL);
     double* pr = mxGetPr(arr);
     const std::vector<double>& data = mat.data();
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
-            pr[j * rows + i] = data[i * cols + j];
-        }
-    }
+    std::memcpy(pr, data.data(), rows * cols * sizeof(double));
     return arr;
 }
 
-// 将行优先的 MatrixB 转换为 MATLAB logical 矩阵
+// 将列优先的 MatrixB 转换为 MATLAB logical 矩阵
 mxArray* matrixBToMxLogical(const MatrixB& mat) {
     size_t rows = mat.rows();
     size_t cols = mat.cols();
     mxArray* arr = mxCreateLogicalMatrix(rows, cols);
     mxLogical* pl = mxGetLogicals(arr);
     const std::vector<uint8_t>& data = mat.data();
-    for (size_t i = 0; i < rows; ++i) {
-        for (size_t j = 0; j < cols; ++j) {
-            pl[j * rows + i] = (data[i * cols + j] != 0);
-        }
+    // 线性拷贝（类型不同，需逐个转换，但可按线性索引直接操作）
+    for (size_t i = 0; i < rows * cols; ++i) {
+        pl[i] = (data[i] != 0);
     }
     return arr;
 }

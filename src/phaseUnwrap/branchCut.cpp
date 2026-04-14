@@ -271,7 +271,7 @@ void branchCut::Method::placeBranchCuts() {
 void branchCut::Method::unwrapAroundCuts(const utils::MatrixD &phaseMap, utils::MatrixD &result) {
     int rows = phaseMap.rows();
     int cols = phaseMap.cols();
-
+    
     // 初始化解缠结果矩阵和标志位矩阵
     // result = phaseMap; // 不需要全拷贝，只需要在访问时赋值
     utils::MatrixB unwrappedFlags(rows, cols, 0); // 0: 未解缠, 1: 已解缠
@@ -334,11 +334,11 @@ void branchCut::Method::unwrapAroundCuts(const utils::MatrixD &phaseMap, utils::
                 if (unwrappedFlags(r, c) == 0) {
                     // 按优先级尝试寻找即邻接的已解缠点: 左, 上, 右, 下
                     // 一旦找到一个有效邻居，就进行解缠并标记
-
+                    
                     if (c > 0 && unwrappedFlags(r, c - 1)) { // 左
                         result(r, c) = itohUnwrapNeighbor(result(r, c - 1), phaseMap(r, c));
                         unwrappedFlags(r, c) = 1;
-                    }
+                    } 
                     else if (r > 0 && unwrappedFlags(r - 1, c)) { // 上
                         result(r, c) = itohUnwrapNeighbor(result(r - 1, c), phaseMap(r, c));
                         unwrappedFlags(r, c) = 1;
@@ -366,7 +366,7 @@ std::unique_ptr<utils::MatrixD> branchCut::Method::unwrap(const utils::MatrixD &
     auto result = std::make_unique<utils::MatrixD>(wrappedPhase.rows(), wrappedPhase.cols());
     unwrapAroundCuts(wrappedPhase, *result);
 
-    return result;
+    return result; 
 }
 
 std::unique_ptr<utils::Matrix<int>> branchCut::Method::getResidues() {

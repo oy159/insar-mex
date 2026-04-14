@@ -16,6 +16,7 @@ set(SOURCES
         src/utils/utils.cpp
         src/phaseUnwrap/branchCut.cpp
         src/filter/CircularMedianFilter.cpp
+        src/phaseUnwrap/mcf.cpp
 )
 
 file(GLOB_RECURSE HEADERS "src/*.h")
@@ -44,6 +45,11 @@ matlab_add_mex(
         LINK_TO     unwrapped_phase
 )
 
+matlab_add_mex(
+        NAME        mcf_mex
+        SRC         mex/mcf_mex.cpp
+        LINK_TO     unwrapped_phase
+)
 
-add_custom_target(all_mex DEPENDS qualityMapGuideMethod_mex circularMedianFilter_mex branchCut_mex)
 
+add_custom_target(all_mex DEPENDS qualityMapGuideMethod_mex circularMedianFilter_mex branchCut_mex mcf_mex)

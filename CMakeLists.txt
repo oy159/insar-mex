@@ -11,6 +11,9 @@ find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MAIN_PROGRAM)
 add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
 add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
 
+
+# add snaphu compile
+
 set(SOURCES
         src/phaseUnwrap/qualityMapGuideMethod.cpp
         src/utils/utils.cpp

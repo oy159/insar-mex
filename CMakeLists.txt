@@ -1,58 +1,64 @@
-cmake_minimum_required(VERSION 4.0)
-project(Radar_Algorithm)
+cmake_minimum_required(VERSION 3.20)
+project(insar_mex LANGUAGES C CXX)
 
 set(CMAKE_CXX_STANDARD 23)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
-set(Matlab_ROOT_DIR "C:/Program Files/MATLAB/R2024b")
-set(MATLAB_FIND_DEBUG ON)
-find_package(Matlab REQUIRED COMPONENTS MEX_COMPILER MAIN_PROGRAM)
+option(INSAR_MEX_BUILD_MEX "Build MATLAB MEX targets" ON)
+option(INSAR_MEX_ENABLE_SNAPHU "Enable SNAPHU integration hooks in insar-mex code" OFF)
+option(INSAR_MEX_BUILD_SNAPHU "Build bundled SNAPHU target from external/snaphu" OFF)
 
+set(Matlab_ROOT_DIR "" CACHE PATH "Path to MATLAB installation (used only when INSAR_MEX_BUILD_MEX=ON)")
 
-add_compile_options("$<$<C_COMPILER_ID:MSVC>:/utf-8>")
-add_compile_options("$<$<CXX_COMPILER_ID:MSVC>:/utf-8>")
-
-
-# add snaphu compile
-
-set(SOURCES
-        src/phaseUnwrap/qualityMapGuideMethod.cpp
-        src/utils/utils.cpp
-        src/phaseUnwrap/branchCut.cpp
-        src/filter/CircularMedianFilter.cpp
-        src/phaseUnwrap/mcf.cpp
+add_compile_options(
+    "$<$<C_COMPILER_ID:MSVC>:/utf-8>"
+    "$<$<CXX_COMPILER_ID:MSVC>:/utf-8>"
 )
 
-file(GLOB_RECURSE HEADERS "src/*.h")
+set(INSAR_MEX_CORE_SOURCES
+    src/phaseUnwrap/qualityMapGuideMethod.cpp
+    src/utils/utils.cpp
+    src/phaseUnwrap/branchCut.cpp
+    src/filter/CircularMedianFilter.cpp
+    src/phaseUnwrap/mcf.cpp
+)
 
-add_library(unwrapped_phase STATIC ${SOURCES} ${HEADERS})
+file(GLOB_RECURSE INSAR_MEX_CORE_HEADERS CONFIGURE_DEPENDS
+    "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
+)
+
+add_library(unwrapped_phase STATIC
+    ${INSAR_MEX_CORE_SOURCES}
+    ${INSAR_MEX_CORE_HEADERS}
+)
+
+target_include_directories(unwrapped_phase
+    PUBLIC
+        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/src>
+)
+
+target_compile_features(unwrapped_phase PUBLIC cxx_std_23)
+
+if(INSAR_MEX_ENABLE_SNAPHU)
+    target_compile_definitions(unwrapped_phase PUBLIC INSAR_MEX_ENABLE_SNAPHU=1)
+endif()
 
 add_executable(Radar_main main.cpp)
-target_link_libraries(Radar_main unwrapped_phase)
-target_include_directories(Radar_main PRIVATE src)
+target_link_libraries(Radar_main PRIVATE unwrapped_phase)
+target_include_directories(Radar_main PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/src)
 
-matlab_add_mex(
-        NAME        qualityMapGuideMethod_mex
-        SRC         mex/qualityMapGuideMethod_mex.cpp
-        LINK_TO     unwrapped_phase
-)
+if(INSAR_MEX_ENABLE_SNAPHU)
+    target_compile_definitions(Radar_main PRIVATE INSAR_MEX_ENABLE_SNAPHU=1)
+endif()
 
-matlab_add_mex(
-        NAME        circularMedianFilter_mex
-        SRC         mex/circularMedianFilter_mex.cpp
-        LINK_TO     unwrapped_phase
-)
+add_subdirectory(external)
 
-matlab_add_mex(
-        NAME        branchCut_mex
-        SRC         mex/branchCut_mex.cpp
-        LINK_TO     unwrapped_phase
-)
-
-matlab_add_mex(
-        NAME        mcf_mex
-        SRC         mex/mcf_mex.cpp
-        LINK_TO     unwrapped_phase
-)
-
-
-add_custom_target(all_mex DEPENDS qualityMapGuideMethod_mex circularMedianFilter_mex branchCut_mex mcf_mex)
+if(INSAR_MEX_BUILD_MEX)
+    find_package(Matlab QUIET COMPONENTS MEX_COMPILER MAIN_PROGRAM)
+    if(Matlab_FOUND)
+        add_subdirectory(mex)
+    else()
+        message(WARNING "MATLAB not found. Skipping MEX targets. Set Matlab_ROOT_DIR or disable INSAR_MEX_BUILD_MEX.")
+    endif()
+endif()

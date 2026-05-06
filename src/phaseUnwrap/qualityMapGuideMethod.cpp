@@ -1,6 +1,9 @@
 #include "qualityMapGuideMethod.h"
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <limits>
 
 double qualityMapGuideMethod::Method::itohUnwrapNeighbor(double unwrapped, double wrapped) {
     return unwrapped + wrap2pi(wrapped - unwrapped);
@@ -30,10 +33,14 @@ std::unique_ptr<MatrixD> qualityMapGuideMethod::Method::unwrap(const MatrixD &qu
     if (p.val < qualityThreshold)
         return nullptr;
     flag = MatrixB(qualityMap.rows(), qualityMap.cols(), 0);
-    MatrixD unwrappedPhase(qualityMap.rows(), qualityMap.cols(), NAN);
+    MatrixD unwrappedPhase(
+        qualityMap.rows(),
+        qualityMap.cols(),
+        std::numeric_limits<double>::quiet_NaN()
+    );
     unwrappedPhase(p.x, p.y) = phaseMap(p.x, p.y);
 
-    size_t mod = totalPoints / 100;
+    size_t mod = std::max<size_t>(1, totalPoints / 100);
 
     flag(p.x, p.y) = 1;
     visited.insert({p.x, p.y});
@@ -92,7 +99,7 @@ PointVal qualityMapGuideMethod::Method::getBestPoint(const MatrixD &qualityMap) 
     size_t idx = it - data.begin();
     size_t i = idx / qualityMap.cols();
     size_t j = idx % qualityMap.cols();
-    return {static_cast<int>(i), static_cast<int>(j), *it};
+    return PointVal{static_cast<int>(i), static_cast<int>(j), *it};
 }
 
 std::unique_ptr<MatrixB> qualityMapGuideMethod::Method::getMask() {

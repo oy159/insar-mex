@@ -1,10 +1,8 @@
 /*************************************************************************
 
-  snaphu input/output source file
-  Written by Curtis W. Chen
-  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-  Please see the supporting documentation for terms of use.
-  No warranty.
+  snaphu-win input/output source file
+  Based on snaphu-unix by Curtis W. Chen (Stanford University)
+  Windows port - single-tile mode only
 
 *************************************************************************/
 
@@ -16,14 +14,17 @@
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include "snaphu.h"
 
@@ -201,7 +202,11 @@ int SetDefaults(infileT *infiles, outfileT *outfiles, paramT *params){
   params->edgemaskbot=DEF_EDGEMASKBOT;
   params->edgemaskleft=DEF_EDGEMASKLEFT;
   params->edgemaskright=DEF_EDGEMASKRIGHT;
+#ifdef _WIN32
+  params->parentpid=(long )_getpid();
+#else
   params->parentpid=(long )getpid();
+#endif
 
   /* tile parameters */
   params->ntilerow=DEF_NTILEROW;
@@ -1741,11 +1746,22 @@ int WriteConfigLogFile(int argc, char *argv[], infileT *infiles,
     fprintf(fp,"# %s v%s\n",PROGRAMNAME,VERSION);
     time(t);
     fprintf(fp,"# Log file generated %s",ctime(t));
+#ifdef _WIN32
+    {
+      DWORD hnsz = MAXSTRLEN;
+      if(GetComputerNameA(hostnamestr, &hnsz)){
+        fprintf(fp,"# Host name: %s\n",hostnamestr);
+      }else{
+        fprintf(fp,"# Could not determine host name\n");
+      }
+    }
+#else
     if(gethostname(hostnamestr,MAXSTRLEN)){
       fprintf(fp,"# Could not determine host name\n");
     }else{
       fprintf(fp,"# Host name: %s\n",hostnamestr);
     }
+#endif
     fprintf(fp,"# PID %ld\n",params->parentpid);
     ptr=getcwd(buf,MAXSTRLEN);
     if(ptr!=NULL){
@@ -1761,13 +1777,13 @@ int WriteConfigLogFile(int argc, char *argv[], infileT *infiles,
 
     /* print some information about data type sizes */
     fprintf(fp,"# Data type size information for executable as compiled\n");
-    fprintf(fp,"# sizeof(short):      %ld\n",sizeof(short));
-    fprintf(fp,"# sizeof(int):        %ld\n",sizeof(int));
-    fprintf(fp,"# sizeof(long):       %ld\n",sizeof(long));
-    fprintf(fp,"# sizeof(float):      %ld\n",sizeof(float));
-    fprintf(fp,"# sizeof(double):     %ld\n",sizeof(double));
-    fprintf(fp,"# sizeof(void *):     %ld\n",sizeof(void *));
-    fprintf(fp,"# sizeof(size_t):     %ld\n",sizeof(size_t));
+    fprintf(fp,"# sizeof(short):      %zu\n",sizeof(short));
+    fprintf(fp,"# sizeof(int):        %zu\n",sizeof(int));
+    fprintf(fp,"# sizeof(long):       %zu\n",sizeof(long));
+    fprintf(fp,"# sizeof(float):      %zu\n",sizeof(float));
+    fprintf(fp,"# sizeof(double):     %zu\n",sizeof(double));
+    fprintf(fp,"# sizeof(void *):     %zu\n",sizeof(void *));
+    fprintf(fp,"# sizeof(size_t):     %zu\n",sizeof(size_t));
     fprintf(fp,"\n");
 
     /* print an entry for each run-time parameter */

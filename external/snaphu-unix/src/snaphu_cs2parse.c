@@ -2,11 +2,11 @@
 
   This code is derived from cs2 v3.7
   Written by Andrew V. Goldberg and Boris Cherkassky
-  Modifications for use in snaphu by Curtis W. Chen 
+  Modifications for use in snaphu-unix by Curtis W. Chen
 
   Parser for cs2 minimum cost flow solver.  Originally written to read
   DIMACS format (text) input files.  Modified to parse passed data
-  from snaphu.  This file is included with a #include from
+  from snaphu-unix.  This file is included with a #include from
   snaphu_cs2.c.
 
   The cs2 code is used here with permission for strictly noncommerical

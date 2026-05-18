@@ -1,10 +1,8 @@
 /*************************************************************************
 
-  snaphu statistical cost model source file
-  Written by Curtis W. Chen
-  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-  Please see the supporting documentation for terms of use.
-  No warranty.
+  snaphu-win statistical cost model source file
+  Based on snaphu-unix by Curtis W. Chen (Stanford University)
+  Windows port - single-tile mode only
 
 *************************************************************************/
 
@@ -16,14 +14,17 @@
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include "snaphu.h"
 

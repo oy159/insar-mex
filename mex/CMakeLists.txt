@@ -2,7 +2,7 @@ set(INSAR_MEX_TARGETS
     qualityMapGuideMethod_mex
     circularMedianFilter_mex
     branchCut_mex
-    mcf_mex
+    snaphu_mex
 )
 
 matlab_add_mex(
@@ -29,13 +29,19 @@ matlab_add_mex(
 
 target_include_directories(branchCut_mex PRIVATE ${PROJECT_SOURCE_DIR}/src)
 
-matlab_add_mex(
-    NAME    mcf_mex
-    SRC     ${CMAKE_CURRENT_SOURCE_DIR}/mcf_mex.cpp
-    LINK_TO unwrapped_phase
-)
+if(INSAR_MEX_BUILD_SNAPHU AND TARGET snaphu)
+    matlab_add_mex(
+        NAME    snaphu_mex
+        SRC     ${CMAKE_CURRENT_SOURCE_DIR}/snaphu_mex.cpp
+        LINK_TO unwrapped_phase
+    )
 
-target_include_directories(mcf_mex PRIVATE ${PROJECT_SOURCE_DIR}/src)
+    target_include_directories(snaphu_mex PRIVATE ${PROJECT_SOURCE_DIR}/src)
+    target_link_libraries(snaphu_mex snaphu)
+    target_compile_definitions(snaphu_mex PRIVATE INSAR_MEX_SNAPHU_AVAILABLE=1)
+else()
+    list(REMOVE_ITEM INSAR_MEX_TARGETS snaphu_mex)
+endif()
 
 if(INSAR_MEX_ENABLE_SNAPHU)
     foreach(target IN LISTS INSAR_MEX_TARGETS)

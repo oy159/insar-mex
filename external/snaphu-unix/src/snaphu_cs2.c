@@ -2,7 +2,7 @@
 
   This code is derived from cs2 v3.7
   Written by Andrew V. Goldberg and Boris Cherkassky
-  Modifications for use in snaphu by Curtis W. Chen 
+  Modifications for use in snaphu-unix by Curtis W. Chen
 
   The cs2 code is used here with permission for strictly noncommerical
   use.  The original cs2 source code can be downloaded from

@@ -1,21 +1,23 @@
 /*************************************************************************
 
-  snaphu header file
-  Written by Curtis W. Chen
-  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-  Please see the supporting documentation for terms of use.
-  No warranty.
+  snaphu-win header file
+  Based on snaphu-unix v2.0.6 by Curtis W. Chen (Stanford University)
+  Windows port - single-tile mode only
 
 *************************************************************************/
 
+#ifndef SNAPHU_H
+#define SNAPHU_H
+
+#include "snaphu_platform.h"
 
 /**********************/
 /* defined constants  */
 /**********************/
 
-#define PROGRAMNAME          "snaphu"
+#define PROGRAMNAME          "snaphu-win"
 #define VERSION              "2.0.6"
-#define BUGREPORTEMAIL       "snaphu@gmail.com"
+#define BUGREPORTEMAIL       "snaphu-unix@gmail.com"
 #ifdef PI
 #undef PI
 #endif
@@ -58,14 +60,14 @@
 #define CLIPFACTOR           0.6666666667
 #define NSOURCELISTMEMINCR   1024
 #define NLISTMEMINCR         1024
-#define DEF_OUTFILE          "snaphu.out"
-#define DEF_SYSCONFFILE      ""     /* "/usr/local/snaphu/snaphu.conf" */
-#define DEF_WEIGHTFILE       ""     /* "snaphu.weight" */
-#define DEF_AMPFILE          ""     /* "snaphu.amp" */
-#define DEF_AMPFILE2         ""     /* "snaphu.amp" */
-#define DEF_MAGFILE          ""     /* "snaphu.mag" */
-#define DEF_CORRFILE         ""     /* "snaphu.corr" */
-#define DEF_ESTFILE          ""     /* "snaphu.est" */
+#define DEF_OUTFILE          "snaphu-unix.out"
+#define DEF_SYSCONFFILE      ""     /* "/usr/local/snaphu-unix/snaphu-unix.conf" */
+#define DEF_WEIGHTFILE       ""     /* "snaphu-unix.weight" */
+#define DEF_AMPFILE          ""     /* "snaphu-unix.amp" */
+#define DEF_AMPFILE2         ""     /* "snaphu-unix.amp" */
+#define DEF_MAGFILE          ""     /* "snaphu-unix.mag" */
+#define DEF_CORRFILE         ""     /* "snaphu-unix.corr" */
+#define DEF_ESTFILE          ""     /* "snaphu-unix.est" */
 #define DEF_COSTINFILE       ""
 #define DEF_BYTEMASKFILE     ""
 #define DEF_DOTILEMASKFILE   ""
@@ -88,7 +90,11 @@
 #define MAXRES               SCHAR_MAX
 #define MINRES               SCHAR_MIN
 #define PROBCOSTP            (-99.999)
+#ifdef _WIN32
+#define NULLFILE             "NUL"
+#else
 #define NULLFILE             "/dev/null"
+#endif
 #define DEF_ERRORSTREAM      stderr
 #define DEF_OUTPUTSTREAM     stdout
 #define DEF_VERBOSESTREAM    NULL
@@ -113,7 +119,11 @@
 #define TILEINITFILEROOT     "snaphu_tileinit_"
 #define ABNORMAL_EXIT        1         /* exit code */
 #define NORMAL_EXIT          0         /* exit code */
+#ifdef _WIN32
+#define DUMP_PATH            "C:\\Temp\\"
+#else
 #define DUMP_PATH            "/tmp/"   /* default location for writing dumps */
+#endif
 #define NARMS                8         /* number of arms for Despeckle() */
 #define ARMLEN               5         /* length of arms for Despeckle() */
 #define KEDGE                5         /* length of edge detection window */
@@ -248,18 +258,18 @@
 #define NOSTATINITMAXFLOW    15
 #define DEF_ARCMAXFLOWCONST  3
 #define DEF_DUMPALL          FALSE
-#define DUMP_INITFILE        "snaphu.init"
-#define DUMP_FLOWFILE        "snaphu.flow"
-#define DUMP_EIFILE          "snaphu.ei"
-#define DUMP_ROWCOSTFILE     "snaphu.rowcost"
-#define DUMP_COLCOSTFILE     "snaphu.colcost"
-#define DUMP_MSTROWCOSTFILE  "snaphu.mstrowcost"
-#define DUMP_MSTCOLCOSTFILE  "snaphu.mstcolcost"
-#define DUMP_MSTCOSTSFILE    "snaphu.mstcosts"
-#define DUMP_CORRDUMPFILE    "snaphu.corr"
-#define DUMP_RAWCORRDUMPFILE "snaphu.rawcorr"
-#define INCRCOSTFILEPOS      "snaphu.incrcostpos"
-#define INCRCOSTFILENEG      "snaphu.incrcostneg"
+#define DUMP_INITFILE        "snaphu-unix.init"
+#define DUMP_FLOWFILE        "snaphu-unix.flow"
+#define DUMP_EIFILE          "snaphu-unix.ei"
+#define DUMP_ROWCOSTFILE     "snaphu-unix.rowcost"
+#define DUMP_COLCOSTFILE     "snaphu-unix.colcost"
+#define DUMP_MSTROWCOSTFILE  "snaphu-unix.mstrowcost"
+#define DUMP_MSTCOLCOSTFILE  "snaphu-unix.mstcolcost"
+#define DUMP_MSTCOSTSFILE    "snaphu-unix.mstcosts"
+#define DUMP_CORRDUMPFILE    "snaphu-unix.corr"
+#define DUMP_RAWCORRDUMPFILE "snaphu-unix.rawcorr"
+#define INCRCOSTFILEPOS      "snaphu-unix.incrcostpos"
+#define INCRCOSTFILENEG      "snaphu-unix.incrcostneg"
 #define DEF_CS2SCALEFACTOR   8
 #define DEF_NMAJORPRUNE      LARGEINT
 #define DEF_PRUNECOSTTHRESH  LARGEINT
@@ -310,7 +320,7 @@
 /* command-line usage help strings */
 
 #define OPTIONSHELPFULL\
- "usage:  snaphu [options] infile linelength [options]\n"\
+ "usage:  snaphu-unix [options] infile linelength [options]\n"\
  "options:\n"\
  "  -t              use topography mode costs (default)\n"\
  "  -d              use deformation mode costs\n"\
@@ -354,7 +364,7 @@
  "\n"
 
 #define OPTIONSHELPBRIEF\
- "usage:  snaphu [options] infile linelength [options]\n"\
+ "usage:  snaphu-unix [options] infile linelength [options]\n"\
  "most common options:\n"\
  "  -t              use topography mode costs (default)\n"\
  "  -d              use deformation mode costs\n"\
@@ -376,7 +386,7 @@
  "  --tile <nrow> <ncol> <rowovrlp> <colovrlp>  unwrap as nrow x ncol tiles\n"\
  "  --nproc <integer>               number of processors used in tile mode\n"\
  "\n"\
- "type snaphu -h for a complete list of options\n"\
+ "type snaphu-unix -h for a complete list of options\n"\
  "\n"
 
 #define COPYRIGHT\
@@ -425,7 +435,7 @@
  "  trademarks, or other rights.\n"\
  "\n"\
  "\n"\
- "Please send snaphu bug reports to " BUGREPORTEMAIL "\n"\
+ "Please send snaphu-unix bug reports to " BUGREPORTEMAIL "\n"\
  "\n"
 
 
@@ -1023,8 +1033,8 @@ extern void (*CalcCost)(void **, long, long, long, long, long,
                         paramT *, long *, long *);
 extern long (*EvalCost)(void **, short **, long, long, long, paramT *);
 
-/* end of snaphu.h */
+/* end of snaphu-win.h */
 
-
+#endif /* SNAPHU_H */
 
 

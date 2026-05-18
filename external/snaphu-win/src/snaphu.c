@@ -1,10 +1,8 @@
 /*************************************************************************
 
-  snaphu main source file
-  Written by Curtis W. Chen
-  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-  Please see the supporting documentation for terms of use.
-  No warranty.
+  snaphu-win main source file
+  Based on snaphu-unix by Curtis W. Chen (Stanford University)
+  Windows port - single-tile mode only
 
 *************************************************************************/
 
@@ -16,14 +14,17 @@
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include "snaphu.h"
 
@@ -63,7 +64,7 @@ int UnwrapTile(infileT *infiles, outfileT *outfiles, paramT *params,
 
 
 /***************************/
-/* main program for snaphu */
+/* main program for snaphu-unix */
 /***************************/
 
 int main(int argc, char **argv){
@@ -220,6 +221,13 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
 
     }else{
 
+#ifdef _WIN32
+      /* multi-tile mode not supported on Windows v1 */
+      fflush(NULL);
+      fprintf(sp0,"ERROR: Multi-tile mode is not supported on Windows.\n"
+              "Only single-tile mode (ntilerow=1, ntilecol=1) is available.\n");
+      exit(ABNORMAL_EXIT);
+#else
       /* don't unwrap if in assemble-only mode */
       if(!iterparams->assembleonly){
 
@@ -250,13 +258,13 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
 
             /* unwrap next tile if there are free processors and tiles left */
             if(nchildren<nthreads && nexttilerow<ntilerow){
-            
+
               /* see if next tile needs to be unwrapped */
               if(dotilemask[nexttilerow][nexttilecol]){
 
                 /* wait to make sure file i/o, threads, and OS are synched */
                 sleep(sleepinterval);
-                
+
                 /* fork to create new process */
                 fflush(NULL);
                 pid=fork();
@@ -295,7 +303,7 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
                 SetupTile(nlines,linelen,iterparams,tileparams,
                           iteroutfiles,tileoutfiles,
                           nexttilerow,nexttilecol);
-              
+
                 /* reset stream pointers for logging */
                 ChildResetStreamPointers(pid,nexttilerow,nexttilecol,
                                          iterparams);
@@ -311,7 +319,7 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
                 exit(NORMAL_EXIT);
 
               }
-              
+
               /* parent executes this code after fork */
 
               /* increment tile counters */
@@ -369,7 +377,7 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
                 SetupTile(nlines,linelen,iterparams,tileparams,
                           iteroutfiles,tileoutfiles,
                           nexttilerow,nexttilecol);
-            
+
                 /* unwrap the tile */
                 UnwrapTile(iterinfiles,tileoutfiles,iterparams,tileparams,
                            nlines,linelen);
@@ -387,7 +395,8 @@ int Unwrap(infileT *infiles, outfileT *outfiles, paramT *params,
 
       /* reassemble tiles */
       AssembleTiles(iteroutfiles,iterparams,nlines,linelen);
-    
+#endif /* _WIN32 */
+
     } /* end if multiple tiles */
 
     /* remove temporary tile file if desired at end of second iteration */

@@ -1,6 +1,6 @@
 /*************************************************************************
 
-  snaphu tile-mode source file
+  snaphu-unix tile-mode source file
   Written by Curtis W. Chen
   Copyright 2002 Board of Trustees, Leland Stanford Jr. University
   Please see the supporting documentation for terms of use.

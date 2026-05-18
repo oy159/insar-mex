@@ -2,7 +2,7 @@
 
   This code is derived from cs2 v3.7
   Written by Andrew V. Goldberg and Boris Cherkassky
-  Modifications for use in snaphu by Curtis W. Chen 
+  Modifications for use in snaphu-unix by Curtis W. Chen
 
   Header for cs2 minimum cost flow solver.  This file is included with
   a #include from snaphu_cs2.c.

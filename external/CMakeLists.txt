@@ -1,3 +1,7 @@
 if(INSAR_MEX_BUILD_SNAPHU)
-    add_subdirectory(snaphu)
+    if(WIN32)
+        add_subdirectory(snaphu-win)
+    else()
+        add_subdirectory(snaphu-unix)
+    endif()
 endif()

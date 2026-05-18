@@ -6,8 +6,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
 option(INSAR_MEX_BUILD_MEX "Build MATLAB MEX targets" ON)
-option(INSAR_MEX_ENABLE_SNAPHU "Enable SNAPHU integration hooks in insar-mex code" OFF)
-option(INSAR_MEX_BUILD_SNAPHU "Build bundled SNAPHU target from external/snaphu" OFF)
+option(INSAR_MEX_ENABLE_SNAPHU "Enable SNAPHU integration hooks in insar-mex code" ON)
+option(INSAR_MEX_BUILD_SNAPHU "Build bundled SNAPHU target from external/snaphu" ON)
 
 set(Matlab_ROOT_DIR "" CACHE PATH "Path to MATLAB installation (used only when INSAR_MEX_BUILD_MEX=ON)")
 
@@ -21,12 +21,13 @@ set(INSAR_MEX_CORE_SOURCES
     src/utils/utils.cpp
     src/phaseUnwrap/branchCut.cpp
     src/filter/CircularMedianFilter.cpp
-    src/phaseUnwrap/mcf.cpp
 )
 
 file(GLOB_RECURSE INSAR_MEX_CORE_HEADERS CONFIGURE_DEPENDS
     "${CMAKE_CURRENT_SOURCE_DIR}/src/*.h"
 )
+
+add_subdirectory(external)
 
 add_library(unwrapped_phase STATIC
     ${INSAR_MEX_CORE_SOURCES}
@@ -52,7 +53,10 @@ if(INSAR_MEX_ENABLE_SNAPHU)
     target_compile_definitions(Radar_main PRIVATE INSAR_MEX_ENABLE_SNAPHU=1)
 endif()
 
-add_subdirectory(external)
+if(INSAR_MEX_BUILD_SNAPHU AND TARGET snaphu)
+    target_link_libraries(Radar_main PRIVATE snaphu)
+    target_compile_definitions(Radar_main PRIVATE INSAR_MEX_SNAPHU_AVAILABLE=1)
+endif()
 
 if(INSAR_MEX_BUILD_MEX)
     find_package(Matlab QUIET COMPONENTS MEX_COMPILER MAIN_PROGRAM)

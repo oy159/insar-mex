@@ -1,10 +1,8 @@
 /*************************************************************************
 
-  snaphu utility function source file
-  Written by Curtis W. Chen
-  Copyright 2002 Board of Trustees, Leland Stanford Jr. University
-  Please see the supporting documentation for terms of use.
-  No warranty.
+  snaphu-win utility function source file
+  Based on snaphu-unix by Curtis W. Chen (Stanford University)
+  Windows port - single-tile mode only
 
 *************************************************************************/
 
@@ -16,14 +14,17 @@
 #include <float.h>
 #include <string.h>
 #include <ctype.h>
+#include <time.h>
+
+#ifndef _WIN32
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/wait.h>
-#include <time.h>
 #include <sys/time.h>
 #include <sys/resource.h>
+#endif
 
 #include "snaphu.h"
 
@@ -1100,10 +1101,11 @@ int StringToLong(char *str, long *l){
 
 /* function: CatchSignals()
  * ------------------------
- * Traps common signals that by default cause the program to abort.  
+ * Traps common signals that by default cause the program to abort.
  * Sets (pointer to function) Handler as the signal handler for all.
  * Note that SIGKILL usually cannot be caught.  No return value.
  */
+#ifndef _WIN32
 int CatchSignals(void (*SigHandler)(int)){
 
   signal(SIGHUP,SigHandler);
@@ -1120,15 +1122,16 @@ int CatchSignals(void (*SigHandler)(int)){
   return(0);
 
 }
+#endif
 
 
 /* function: SetDump()
  * -------------------
  * Set the global variable dumpresults_global to TRUE if SIGINT or SIGHUP
- * signals recieved.  Also sets requestedstop_global if SIGINT signal 
- * received.  This function should only be called via signal() when 
+ * signals recieved.  Also sets requestedstop_global if SIGINT signal
+ * received.  This function should only be called via signal() when
  * a signal is caught.
- */ 
+ */
 void SetDump(int signum){
 
   if(signum==SIGINT){
@@ -1143,6 +1146,7 @@ void SetDump(int signum){
     dumpresults_global=TRUE;
     requestedstop_global=TRUE;
 
+#ifndef _WIN32
   }else if(signum==SIGHUP){
 
     /* make sure the hangup signal doesn't revert to default behavior */
@@ -1152,6 +1156,7 @@ void SetDump(int signum){
     fflush(NULL);
     fprintf(sp0,"\n\nSIGHUP signal caught.  Dumping results\n");
     dumpresults_global=TRUE;
+#endif
 
   }else{
     fflush(NULL);
@@ -1176,8 +1181,10 @@ void KillChildrenExit(int signum){
   fprintf(sp0,"Parent received signal %d\nKilling children and exiting\n",
           signum);
   fflush(NULL);
+#ifndef _WIN32
   signal(SIGTERM,SIG_IGN);
   kill(0,SIGTERM);
+#endif
   exit(ABNORMAL_EXIT);
 
   /* done */
@@ -1191,8 +1198,10 @@ void KillChildrenExit(int signum){
  * Signal hanlder that prints message about the signal received, then exits.
  */
 void SignalExit(int signum){
-  
+
+#ifndef _WIN32
   signal(SIGTERM,SIG_IGN);
+#endif
   fflush(NULL);
   fprintf(sp0,"Exiting with status %d on signal %d\n",ABNORMAL_EXIT,signum);
   fflush(NULL);
@@ -1209,8 +1218,9 @@ void SignalExit(int signum){
  * Starts the wall clock and CPU timers for use in conjunction with
  * DisplayElapsedTime().
  */
+#ifndef _WIN32
 int StartTimers(time_t *tstart, double *cputimestart){
-  
+
   struct rusage usagebuf;
 
   *tstart=time(NULL);
@@ -1239,8 +1249,8 @@ int StartTimers(time_t *tstart, double *cputimestart){
  * Displays the elapsed wall clock and CPU times for the process and its
  * children.  Times should be initialized at the start of the program with
  * StartTimers().  The code is written to show the total processor time
- * for the parent process and all of its children, but whether or not 
- * this is actually done depends on the implementation of the system time 
+ * for the parent process and all of its children, but whether or not
+ * this is actually done depends on the implementation of the system time
  * functions.
  */
 int DisplayElapsedTime(time_t tstart, double cputimestart){
@@ -1285,6 +1295,7 @@ int DisplayElapsedTime(time_t tstart, double cputimestart){
   return(0);
 
 }
+#endif
 
 
 /* function: LongCompare()
